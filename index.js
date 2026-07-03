@@ -89,7 +89,14 @@ function getFileExtension(filename) {
 function parseFileMetadata(file) {
   // TODO: 實作此函式
   // 提示：呼叫 getFileExtension 取副檔名，Math.round(size / 1024) 算 KB
+  const { originalFilename, size } = file;
+  const ext = getFileExtension(originalFilename);
 
+  return {
+    filename: originalFilename,
+    sizeKB: Math.round(size / 1024),
+    ext
+  }
 }
 
 // ========== 任務四：產出 upload log 字串 ==========
