@@ -119,6 +119,12 @@ function parseFileMetadata(file) {
 function formatUploadLog(meta, config) {
   // TODO: 實作此函式
   // 提示：用 template literal 組字串
+  const { filename, sizeKB } = meta;
+  const { uploadDir, gymName } = config;
+
+  const logString = `[${gymName}] Uploaded ${filename} (${sizeKB} KB) → ${uploadDir}`;
+
+  return logString
 }
 
 // ========== 任務五：路由分派 ==========
