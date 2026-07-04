@@ -1,7 +1,6 @@
 const headers = { 'Content-Type': 'application/json' };
 
 function handleResponse(res, data) {
-  console.log("res", data);
   res.writeHead(200, headers);
   res.end(JSON.stringify(data));
 }
