@@ -1,6 +1,8 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const { formidable } = require('formidable');  // formidable v3 用 named import
+const { handleNotFound } = require('./service/handleNotFound');
+const { handleError, handleResponse } = require('./utils/handleResponse');
 
 // ========== 任務一：讀取上傳設定 ==========
 /**
@@ -152,6 +154,38 @@ function formatUploadLog(meta, config) {
  *   // 在 createUploadServer 裡：
  *   http.createServer((req, res) => router(req, res, config))
  */
+function handleUpload(req, res, config) {
+  const form = formidable({
+    uploadDir: config.uploadDir,
+    maxFileSize: config.maxFileSize,
+    keepExtensions: true
+  });
+
+  form.parse(req, (err, _fields, files) => {
+    if (err) {
+      const errMessage = err.message || 'something went wrong...';
+      handleError(res, 500, errMessage);
+      return
+    }
+
+    const file = files.file?.[0];
+    if (!file) {
+      const errMessage = 'No file uploaded';
+      handleError(res, 400, errMessage);
+      return
+    }
+
+    const { originalFilename, size, filepath } = file;
+    const data = {
+      filename: originalFilename,
+      sizeKB: size / 1000,
+      ext: getFileExtension(originalFilename),
+      savedPath: filepath
+    }
+
+    handleResponse(res, data);
+  })
+}
 function router(req, res, config) {
   // TODO: 實作此函式
   // 建議（非強制）：
@@ -164,6 +198,11 @@ function router(req, res, config) {
   //     form.on('error', (err) => {
   //       console.log(err); // 記錄 log、清理暫存檔、額外監控可以寫在這邊
   //     });  
+  if (req.url === '/coaches/avatar' && req.method === 'POST') {
+    handleUpload(req, res, config);
+  } else {
+    handleNotFound(req, res);
+  }
 }
 
 // ========== 任務六：建立上傳 server ==========
@@ -185,6 +224,11 @@ function router(req, res, config) {
 function createUploadServer(config) {
   // TODO: 實作此函式
   // 提示：主邏輯都在 router 裡，這邊函式內容不多
+  fs.mkdirSync(config.uploadDir, { recursive: true });
+
+  const server = http.createServer((req, res) => router(req, res, config));
+
+  return server
 }
 
 module.exports = {
